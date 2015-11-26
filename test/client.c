@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 	server = argv[1]; //get the name of the server
 	
 	//create the client handle
-	if ( (cl = clnt_create(server, DATE_PROG, DATE_VERS, "netpath")) == NULL )
+	if ( (cl = clnt_create(server, DATE_PROG, DATE_VERS, "UDP")) == NULL )
 	{
 		//failed
 	  clnt_pcreateerror(server);
