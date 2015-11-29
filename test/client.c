@@ -26,23 +26,29 @@ int main(int argc, char** argv)
 	  exit(1);
 	}
 	
-	//call the procedure bin date
-	if ( (lresult = bin_date_1(NULL, cl)) == NULL )
+	while(1)
 	{
-		//failed
-	  clnt_perror(cl, server);
-	  exit(1);
+		sleep(1);
+		system("clear");
+		//call the procedure bin date
+		if ( (lresult = bin_date_1(NULL, cl)) == NULL )
+		{
+			//failed
+			clnt_perror(cl, server);
+			exit(1);
+		}
+	
+		printf("time on %s is %ld\n", server, *lresult);
+	
+		if ( (sresult = str_date_1(lresult, cl)) == NULL)
+		{
+			//failed
+			clnt_perror(cl, server);
+			exit(1);
+		}
+		printf("date is %s\n", *sresult);
 	}
 	
-	printf("time on %s is %ld\n", server, *lresult);
-	
-	if ( (sresult = str_date_1(lresult, cl)) == NULL)
-	{
-		//failed
-		clnt_perror(cl, server);
-		exit(1);
-	}
-	printf("date is %s\n", *sresult);
 	clnt_destroy(cl); //get rid of the handle
 	return 0;
 	

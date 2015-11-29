@@ -24,6 +24,8 @@ char** str_date_1_svc(long *bintime, struct svc_req *rqstp)
 	
 	char* ctime();
 	result = ctime(bintime);
+	system("clear");
+	printf("current time: %s\n", result);
 
 	return &result;
 }

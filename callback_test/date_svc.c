@@ -22,32 +22,33 @@ date_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	union {
 		long str_date_1_arg;
 	} argument;
-	char *result;
+	union {
+		long bin_date_1_res;
+		char *str_date_1_res;
+	} result;
+	bool_t retval;
 	xdrproc_t _xdr_argument, _xdr_result;
-	char *(*local)(char *, struct svc_req *);
-	
+	bool_t (*local)(char *, void *, struct svc_req *);
+
 	switch (rqstp->rq_proc) {
 	case NULLPROC:
 		(void) svc_sendreply (transp, (xdrproc_t) xdr_void, (char *)NULL);
-		
 		return;
 
 	case BIN_DATE:
 		_xdr_argument = (xdrproc_t) xdr_void;
 		_xdr_result = (xdrproc_t) xdr_long;
-		local = (char *(*)(char *, struct svc_req *)) bin_date_1_svc;
-		
+		local = (bool_t (*) (char *, void *,  struct svc_req *))bin_date_1_svc;
 		break;
 
 	case STR_DATE:
 		_xdr_argument = (xdrproc_t) xdr_long;
 		_xdr_result = (xdrproc_t) xdr_wrapstring;
-		local = (char *(*)(char *, struct svc_req *)) str_date_1_svc;
+		local = (bool_t (*) (char *, void *,  struct svc_req *))str_date_1_svc;
 		break;
 
 	default:
 		svcerr_noproc (transp);
-		
 		return;
 	}
 	memset ((char *)&argument, 0, sizeof (argument));
@@ -55,14 +56,17 @@ date_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		svcerr_decode (transp);
 		return;
 	}
-	result = (*local)((char *)&argument, rqstp);
-	if (result != NULL && !svc_sendreply(transp, (xdrproc_t) _xdr_result, result)) {
+	retval = (bool_t) (*local)((char *)&argument, (void *)&result, rqstp);
+	if (retval > 0 && !svc_sendreply(transp, (xdrproc_t) _xdr_result, (char *)&result)) {
 		svcerr_systemerr (transp);
 	}
 	if (!svc_freeargs (transp, (xdrproc_t) _xdr_argument, (caddr_t) &argument)) {
 		fprintf (stderr, "%s", "unable to free arguments");
 		exit (1);
 	}
+	if (!date_prog_1_freeresult (transp, _xdr_result, (caddr_t) &result))
+		fprintf (stderr, "%s", "unable to free results");
+
 	return;
 }
 
@@ -92,7 +96,7 @@ main (int argc, char **argv)
 		fprintf (stderr, "%s", "unable to register (DATE_PROG, DATE_VERS, tcp).");
 		exit(1);
 	}
-	
+
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");
 	exit (1);
